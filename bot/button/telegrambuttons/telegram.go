@@ -1,15 +1,15 @@
 package telegrambuttons
 
 import (
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"multibot/bot/button"
-	"multibot/bot/update"
+	"multibot/bot/entity"
 )
 
 type TelegramInlineButtons struct {
 	keyboard       [][]tgbotapi.InlineKeyboardButton
 	lastKeyboard   int
-	handler        map[string]func(update update.Update)
+	handler        map[string]entity.UpdateFunc
 	handlerButtons map[string]interface{}
 	handlerText    map[string]string
 }
@@ -18,7 +18,7 @@ func InitTelegramInlineButtons() TelegramInlineButtons {
 	return TelegramInlineButtons{
 		keyboard:       make([][]tgbotapi.InlineKeyboardButton, 1),
 		lastKeyboard:   0,
-		handler:        make(map[string]func(update update.Update)),
+		handler:        make(map[string]entity.UpdateFunc),
 		handlerButtons: make(map[string]interface{}),
 		handlerText:    make(map[string]string),
 	}
@@ -30,7 +30,7 @@ func (t TelegramInlineButtons) AddRow() button.ButtonInlineBuilder {
 	return t
 }
 
-func (t TelegramInlineButtons) AddCallBack(label, text, handler string, function func(update update.Update)) button.ButtonInlineBuilder {
+func (t TelegramInlineButtons) AddCallBack(label, text, handler string, function entity.UpdateFunc) button.ButtonInlineBuilder {
 	t.keyboard[t.lastKeyboard] = append(t.keyboard[t.lastKeyboard], tgbotapi.NewInlineKeyboardButtonData(label, handler))
 	t.handler[handler] = function
 	t.handlerText[handler] = text

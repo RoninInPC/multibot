@@ -3,12 +3,12 @@ package vkbuttons
 import (
 	"github.com/SevereCloud/vksdk/v3/object"
 	"multibot/bot/button"
-	"multibot/bot/update"
+	"multibot/bot/entity"
 )
 
 type VKInlineButtons struct {
 	keyboard       *object.MessagesKeyboard
-	handler        map[string]func(update update.Update)
+	handler        map[string]entity.UpdateFunc
 	handlerButtons map[string]interface{}
 	handlerText    map[string]string
 }
@@ -18,7 +18,7 @@ func (V VKInlineButtons) AddRow() button.ButtonInlineBuilder {
 	return V
 }
 
-func (V VKInlineButtons) AddCallBack(label, text, handler string, function func(update update.Update)) button.ButtonInlineBuilder {
+func (V VKInlineButtons) AddCallBack(label, text, handler string, function entity.UpdateFunc) button.ButtonInlineBuilder {
 	V.keyboard = V.keyboard.AddCallbackButton(label, handler, "secondary")
 	V.handlerText[handler] = text
 	V.handler[handler] = function
