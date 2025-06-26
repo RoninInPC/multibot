@@ -13,6 +13,15 @@ type VKInlineButtons struct {
 	handlerText    map[string]string
 }
 
+func InitVkInlineButtons() *VKInlineButtons {
+	return &VKInlineButtons{
+		keyboard:       object.NewMessagesKeyboardInline(),
+		handler:        make(map[string]entity.UpdateFunc),
+		handlerButtons: make(map[string]interface{}),
+		handlerText:    make(map[string]string),
+	}
+}
+
 func (V VKInlineButtons) AddRow() button.ButtonInlineBuilder {
 	V.keyboard.AddRow()
 	return V

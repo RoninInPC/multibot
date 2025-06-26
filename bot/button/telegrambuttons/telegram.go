@@ -14,8 +14,8 @@ type TelegramInlineButtons struct {
 	handlerText    map[string]string
 }
 
-func InitTelegramInlineButtons() TelegramInlineButtons {
-	return TelegramInlineButtons{
+func InitTelegramInlineButtons() *TelegramInlineButtons {
+	return &TelegramInlineButtons{
 		keyboard:       make([][]tgbotapi.InlineKeyboardButton, 1),
 		lastKeyboard:   0,
 		handler:        make(map[string]entity.UpdateFunc),
