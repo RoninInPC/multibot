@@ -14,6 +14,10 @@ type TelegramInlineButtons struct {
 	handlerText    map[string]string
 }
 
+func (t TelegramInlineButtons) GetNewBuilder() button.ButtonInlineBuilder {
+	return InitTelegramInlineButtons()
+}
+
 func InitTelegramInlineButtons() *TelegramInlineButtons {
 	return &TelegramInlineButtons{
 		keyboard:       make([][]tgbotapi.InlineKeyboardButton, 1),
@@ -30,10 +34,10 @@ func (t TelegramInlineButtons) AddRow() button.ButtonInlineBuilder {
 	return t
 }
 
-func (t TelegramInlineButtons) AddCallBack(label, text, handler string, function entity.UpdateFunc) button.ButtonInlineBuilder {
+func (t TelegramInlineButtons) AddCallBack(label, handler string, function entity.UpdateFunc) button.ButtonInlineBuilder {
 	t.keyboard[t.lastKeyboard] = append(t.keyboard[t.lastKeyboard], tgbotapi.NewInlineKeyboardButtonData(label, handler))
 	t.handler[handler] = function
-	t.handlerText[handler] = text
+
 	return t
 }
 

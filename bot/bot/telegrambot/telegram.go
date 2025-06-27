@@ -6,6 +6,7 @@ import (
 	"multibot/bot/button"
 	"multibot/bot/button/telegrambuttons"
 	"multibot/bot/entity"
+	"multibot/bot/typebot"
 	"multibot/bot/update/telegramupdate"
 )
 
@@ -56,14 +57,14 @@ func (t *TelegramBot) GetChannel() chan<- entity.Message {
 func (t *TelegramBot) SetFunctionalWithStart(text string, function entity.UpdateFunc, content *button.ButtonsContent) {
 	t.start.Text = text
 	t.start.Func = function
-	t.start.Content = content
+	t.start.Content = content.Content
 	t.handler = content.Handler
 	t.handlerButtons = content.HandlerButtons
 	t.handlerText = content.HandlerText
 }
 
-func (t *TelegramBot) GetType() entity.TypeBot {
-	return entity.Telegram
+func (t *TelegramBot) GetType() typebot.TypeBot {
+	return typebot.Telegram
 }
 
 func (t *TelegramBot) GetFunctionalBuilder() button.ButtonInlineBuilder {
@@ -85,7 +86,7 @@ func (t *TelegramBot) Work() {
 			if msg.Update == nil {
 				id = msg.WhoID
 			} else {
-				if msg.Update.GetType() == entity.Telegram {
+				if msg.Update.GetType() == typebot.Telegram {
 					update := msg.Update.(telegramupdate.TelegramUpdate)
 					if update.Update.CallbackQuery != nil {
 						id = update.Update.CallbackQuery.From.ID
@@ -120,7 +121,7 @@ func (t *TelegramBot) Work() {
 				Update:  telegramupdate.TelegramUpdate{Update: &updt},
 				Text:    text,
 				Buttons: buttons}
-
+			t.bot.Send(tgbotapi.NewDeleteMessage(updt.CallbackQuery.From.ID, updt.CallbackQuery.Message.MessageID))
 		} else if updt.Message != nil {
 			if updt.Message.Text == t.start.StartCommand {
 				if t.start.Func != nil {
@@ -130,6 +131,7 @@ func (t *TelegramBot) Work() {
 					Update:  telegramupdate.TelegramUpdate{Update: &updt},
 					Text:    t.start.Text,
 					Buttons: t.start.Content}
+				t.bot.Send(tgbotapi.NewDeleteMessage(updt.Message.From.ID, updt.Message.MessageID))
 			}
 		}
 

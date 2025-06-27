@@ -13,9 +13,13 @@ type VKInlineButtons struct {
 	handlerText    map[string]string
 }
 
+func (V VKInlineButtons) GetNewBuilder() button.ButtonInlineBuilder {
+	return InitVkInlineButtons()
+}
+
 func InitVkInlineButtons() *VKInlineButtons {
 	return &VKInlineButtons{
-		keyboard:       object.NewMessagesKeyboardInline(),
+		keyboard:       object.NewMessagesKeyboard(true).AddRow(),
 		handler:        make(map[string]entity.UpdateFunc),
 		handlerButtons: make(map[string]interface{}),
 		handlerText:    make(map[string]string),
@@ -27,9 +31,8 @@ func (V VKInlineButtons) AddRow() button.ButtonInlineBuilder {
 	return V
 }
 
-func (V VKInlineButtons) AddCallBack(label, text, handler string, function entity.UpdateFunc) button.ButtonInlineBuilder {
+func (V VKInlineButtons) AddCallBack(label, handler string, function entity.UpdateFunc) button.ButtonInlineBuilder {
 	V.keyboard = V.keyboard.AddCallbackButton(label, handler, "secondary")
-	V.handlerText[handler] = text
 	V.handler[handler] = function
 	return V
 }

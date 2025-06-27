@@ -1,14 +1,18 @@
 package vkbot
 
 import (
+	"context"
 	"github.com/SevereCloud/vksdk/v3/api"
 	"github.com/SevereCloud/vksdk/v3/api/params"
+	"github.com/SevereCloud/vksdk/v3/events"
 	"github.com/SevereCloud/vksdk/v3/longpoll-bot"
 	"log"
 	"multibot/bot/button"
 	"multibot/bot/button/vkbuttons"
 	"multibot/bot/entity"
+	"multibot/bot/typebot"
 	"multibot/bot/update/vkupdate"
+	"strings"
 )
 
 type VKBot struct {
@@ -61,8 +65,8 @@ func (V *VKBot) SetFunctionalWithStart(text string, function entity.UpdateFunc, 
 	V.handler = content.Handler
 }
 
-func (V *VKBot) GetType() entity.TypeBot {
-	return entity.VK
+func (V *VKBot) GetType() typebot.TypeBot {
+	return typebot.VK
 }
 
 func (V *VKBot) GetFunctionalBuilder() button.ButtonInlineBuilder {
@@ -76,7 +80,7 @@ func (V *VKBot) Work() {
 			if msg.Update == nil {
 				id = msg.WhoID
 			} else {
-				if msg.Update.GetType() == entity.VK {
+				if msg.Update.GetType() == typebot.VK {
 					update := msg.Update.(vkupdate.VKUpdate)
 					if update.UpdateNew != nil {
 						id = int64(update.UpdateNew.Message.FromID)
@@ -86,7 +90,7 @@ func (V *VKBot) Work() {
 				}
 			}
 			b := params.NewMessagesSendBuilder()
-			b.Message("12").
+			b.Message(msg.Text).
 				RandomID(0).
 				PeerID(int(id))
 			if msg.Buttons != nil {
@@ -98,4 +102,42 @@ func (V *VKBot) Work() {
 			}
 		}
 	}()
+
+	V.lp.MessageEvent(func(ctx context.Context, object events.MessageEventObject) {
+		payload := string(object.Payload)
+		payload = strings.Replace(payload, "\"", "", -1)
+		if msg, ok := V.handler[payload]; ok {
+			msg(vkupdate.VKUpdate{UpdateEvent: &object}, V.GetChannel())
+		}
+		buttons, ok := V.handlerButtons[payload]
+		if !ok {
+			buttons = nil
+		}
+		text := V.handlerText[payload]
+
+		V.GetChannel() <- entity.Message{
+			Update:  vkupdate.VKUpdate{UpdateEvent: &object},
+			Text:    text,
+			Buttons: buttons,
+		}
+		ans := params.NewMessagesSendMessageEventAnswerBuilder().
+			EventID(object.EventID).UserID(object.UserID).PeerID(object.PeerID)
+		_, err := V.bot.MessagesSendMessageEventAnswer(ans.Params)
+		if err != nil {
+			panic(err)
+		}
+
+	})
+	V.lp.MessageNew(func(ctx context.Context, object events.MessageNewObject) {
+		if object.Message.Text == V.start.StartHandler {
+			if V.start.Func != nil {
+				V.start.Func(vkupdate.VKUpdate{UpdateNew: &object}, V.GetChannel())
+			}
+			V.GetChannel() <- entity.Message{
+				Update:  vkupdate.VKUpdate{UpdateNew: &object},
+				Text:    V.start.Text,
+				Buttons: V.start.Content}
+		}
+	})
+	V.lp.Run()
 }
